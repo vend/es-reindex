@@ -150,6 +150,9 @@ while true do
   bulk = ''
   data['hits']['hits'].each do |doc|
     ### === implement possible modifications to the document
+    doc["_source"].delete("Suggest") if doc["_source"].has_key?("Suggest")
+    puts "VERSION TYPE: #{doc["_version_type"]}"
+    doc["_version_type"] = 'external_gte'
     ### === end modifications to the document
     puts doc
     base = {'_index' => didx, '_id' => doc['_id'], '_type' => doc['_type']}
