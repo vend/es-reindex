@@ -113,7 +113,8 @@ unless retried_request(:get, "#{durl}/#{didx}/_status")
     exit 1
   end
   mappings = Oj.load mappings
-  mappings[sidx].each_pair{|type, mapping|
+  puts mappings
+  mappings[sidx]['mappings'].each_pair{|type, mapping|
     printf 'Copying mapping \'%s/%s/%s\'... ', durl, didx, type
     unless retried_request(:put, "#{durl}/#{didx}/#{type}/_mapping",
         Oj.dump({type => mapping}))
@@ -130,7 +131,9 @@ t, done = Time.now, 0
 shards = retried_request :get, "#{surl}/#{sidx}/_count?q=*"
 shards = Oj.load(shards)['_shards']['total'].to_i
 scan = retried_request(:get, "#{surl}/#{sidx}/_search" +
-    "?search_type=scan&scroll=10m&size=#{frame / shards}")
+    "?search_type=scan&scroll=10m&size=#{frame / shards}" +
+    "&_source_include=*&fields=_routing"
+    )
 scan = Oj.load scan
 scroll_id = scan['_scroll_id']
 total = scan['hits']['total']
@@ -148,16 +151,24 @@ while true do
   data['hits']['hits'].each do |doc|
     ### === implement possible modifications to the document
     ### === end modifications to the document
+	  puts doc
     base = {'_index' => didx, '_id' => doc['_id'], '_type' => doc['_type']}
     ['_timestamp', '_ttl'].each{|doc_arg|
       base[doc_arg] = doc[doc_arg] if doc.key? doc_arg
     }
+    ['_routing'].each{|field_arg|
+      base[field_arg] = doc['fields'][field_arg] if doc['fields'].key? field_arg
+    }
+    #['_version'].each{|field_arg|
+    #  base[field_arg] = doc['fields'][field_arg].first if doc['fields'].key? field_arg and doc['fields'][field_arg].count==1
+    #}
     bulk << Oj.dump({bulk_op => base}) + "\n"
     bulk << Oj.dump(doc['_source']) + "\n"
     done += 1
   end
   unless bulk.empty?
     bulk << "\n" # empty line in the end required
+    puts bulk
     retried_request :post, "#{durl}/_bulk", bulk
   end
 
@@ -189,4 +200,5 @@ printf "%u == %u (%s\n",
   scount, dcount, scount == dcount ? 'equals).' : 'NOT EQUAL)!'
 
 exit 0
+
 
