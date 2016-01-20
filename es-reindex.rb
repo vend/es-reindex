@@ -131,7 +131,7 @@ shards = retried_request :get, "#{surl}/#{sidx}/_count?q=*"
 shards = Oj.load(shards)['_shards']['total'].to_i
 scan = retried_request(:get, "#{surl}/#{sidx}/_search" +
     "?search_type=scan&scroll=10m&size=#{frame / shards}" +
-    "&_source_include=*&fields=_routing"
+    "&_source_include=*&fields=_routing,_version,version"
     )
 scan = Oj.load scan
 scroll_id = scan['_scroll_id']
