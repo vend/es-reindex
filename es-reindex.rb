@@ -71,12 +71,12 @@ def tm_len l
   out
 end
 
-def retried_request method, url, data=nil
+def retried_request method, url, data=nil, header={content_type: 'application/json'}
   while true
     begin
       return data ?
-        RestClient.send(method, url, data) :
-        RestClient.send(method, url)
+        RestClient.send(method, url, data, headers) :
+        RestClient.send(method, url, headers)
     rescue RestClient::ResourceNotFound # no point to retry
       return nil
     rescue => e
