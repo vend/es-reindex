@@ -71,7 +71,7 @@ def tm_len l
   out
 end
 
-def retried_request method, url, data=nil, header={content_type: 'application/json'}
+def retried_request method, url, data=nil, headers={content_type: 'application/json'}
   while true
     begin
       return data ?
