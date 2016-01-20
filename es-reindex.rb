@@ -167,7 +167,7 @@ while true do
   end
   unless bulk.empty?
     bulk << "\n" # empty line in the end required
-    retried_request :post, "#{durl}/_bulk", bulk
+    retried_request :post, "#{durl}/_bulk?version_type=external_gte", bulk
   end
 
   eta = total * (Time.now - t) / done
