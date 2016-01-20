@@ -151,7 +151,7 @@ while true do
   data['hits']['hits'].each do |doc|
     ### === implement possible modifications to the document
     ### === end modifications to the document
-	  puts doc
+    puts doc
     base = {'_index' => didx, '_id' => doc['_id'], '_type' => doc['_type']}
     ['_timestamp', '_ttl'].each{|doc_arg|
       base[doc_arg] = doc[doc_arg] if doc.key? doc_arg
@@ -159,16 +159,16 @@ while true do
     ['_routing'].each{|field_arg|
       base[field_arg] = doc['fields'][field_arg] if doc['fields'].key? field_arg
     }
-    #['_version'].each{|field_arg|
-    #  base[field_arg] = doc['fields'][field_arg].first if doc['fields'].key? field_arg and doc['fields'][field_arg].count==1
-    #}
+    ['_version'].each{|field_arg|
+      base[field_arg] = doc['fields'][field_arg].first if doc['fields'].key? field_arg and doc['fields'][field_arg].count==1
+    }
     bulk << Oj.dump({bulk_op => base}) + "\n"
     bulk << Oj.dump(doc['_source']) + "\n"
     done += 1
   end
   unless bulk.empty?
     bulk << "\n" # empty line in the end required
-    puts bulk
+   puts bulk
     retried_request :post, "#{durl}/_bulk", bulk
   end
 
@@ -200,5 +200,3 @@ printf "%u == %u (%s\n",
   scount, dcount, scount == dcount ? 'equals).' : 'NOT EQUAL)!'
 
 exit 0
-
-
