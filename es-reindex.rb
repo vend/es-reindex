@@ -142,8 +142,8 @@ printf "    %u/%u (%.1f%%) done.\r", done, total, 0
 bulk_op = update ? 'index' : 'create'
 
 while true do
-  data = retried_request(:get,
-      "#{surl}/_search/scroll?scroll=10m&scroll_id=#{scroll_id}")
+  data = retried_request(:post,
+    "#{surl}/_search/scroll?scroll=10m", scroll_id)
   data = Oj.load data
   break if data['hits']['hits'].empty?
   scroll_id = data['_scroll_id']
