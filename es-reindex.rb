@@ -113,7 +113,6 @@ unless retried_request(:get, "#{durl}/#{didx}/_status")
     exit 1
   end
   mappings = Oj.load mappings
-  puts mappings
   mappings[sidx]['mappings'].each_pair{|type, mapping|
     printf 'Copying mapping \'%s/%s/%s\'... ', durl, didx, type
     unless retried_request(:put, "#{durl}/#{didx}/#{type}/_mapping",
@@ -151,10 +150,7 @@ while true do
   data['hits']['hits'].each do |doc|
     ### === implement possible modifications to the document
     doc["_source"].delete("Suggest") if doc["_source"].has_key?("Suggest")
-    puts "VERSION TYPE: #{doc["_version_type"]}"
-    doc["_version_type"] = 'external_gte'
     ### === end modifications to the document
-    puts doc
     base = {'_index' => didx, '_id' => doc['_id'], '_type' => doc['_type']}
     ['_timestamp', '_ttl'].each{|doc_arg|
       base[doc_arg] = doc[doc_arg] if doc.key? doc_arg
@@ -171,7 +167,6 @@ while true do
   end
   unless bulk.empty?
     bulk << "\n" # empty line in the end required
-   puts bulk
     retried_request :post, "#{durl}/_bulk", bulk
   end
 
