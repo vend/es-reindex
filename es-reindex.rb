@@ -155,9 +155,9 @@ while true do
     ['_timestamp', '_ttl'].each{|doc_arg|
       base[doc_arg] = doc[doc_arg] if doc.key? doc_arg
     }
-    # ['_routing'].each{|field_arg|
-    #   base[field_arg] = doc['fields'][field_arg] if doc['fields'].key? field_arg
-    # }
+    ['_routing'].each{|field_arg|
+      base[field_arg] = doc['fields'][field_arg] if doc['fields'].key? field_arg
+    }
     # ['_version'].each{|field_arg|
     #   base[field_arg] = doc['fields'][field_arg].first if doc['fields'].key? field_arg and doc['fields'][field_arg].count==1
     # }
@@ -167,8 +167,7 @@ while true do
   end
   unless bulk.empty?
     bulk << "\n" # empty line in the end required
-    puts bulk
-    retried_request :post, "#{durl}/_bulk?version_type=external_gte&version_type=external_gte", bulk
+    retried_request :post, "#{durl}/_bulk?version_type=external_gte", bulk
   end
 
   eta = total * (Time.now - t) / done
