@@ -143,8 +143,8 @@ bulk_op = update ? 'index' : 'create'
 while true do
   data = retried_request(:post,
     "#{surl}/_search/scroll?scroll=10m" +
-    "&_source_include=*&fields=_routing,_version,version,_version_type,version_type"
-    , scroll_id)
+    "&_source_include=*&fields=_routing,_version,version,_version_type,version_type",
+    scroll_id)
   data = Oj.load data
   break if data['hits']['hits'].empty?
   scroll_id = data['_scroll_id']
