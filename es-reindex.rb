@@ -153,7 +153,7 @@ while true do
     ### === implement possible modifications to the document
     doc["_source"].delete("Suggest") if doc["_source"].has_key? "Suggest"
     ### === end modifications to the document
-    base = {'_index' => didx, '_id' => doc['_id'], '_type' => doc['_type']}
+    base = {'_index' => didx, '_id' => doc['_id'], '_type' => doc['_type'], '_version_type' => 'external_gte'}
     ['_timestamp', '_ttl'].each{|doc_arg|
       base[doc_arg] = doc[doc_arg] if doc.key? doc_arg
     }
