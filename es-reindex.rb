@@ -143,7 +143,7 @@ bulk_op = update ? 'index' : 'create'
 while true do
   data = retried_request(:post,
     "#{surl}/_search/scroll?scroll=10m" +
-    "&_source_include=*&fields=_routing,_version,version,_version_type,version_type",
+    "&_source_include=*&fields=_routing,_version",
     scroll_id)
   data = Oj.load data
   break if data['hits']['hits'].empty?
@@ -169,7 +169,7 @@ while true do
   end
   unless bulk.empty?
     bulk << "\n" # empty line in the end required
-    retried_request :post, "#{durl}/_bulk?version_type=external_gte", bulk
+    retried_request :post, "#{durl}/_bulk", bulk
   end
 
   eta = total * (Time.now - t) / done
