@@ -143,7 +143,7 @@ bulk_op = update ? 'index' : 'create'
 while true do
   data = retried_request(:post,
     "#{surl}/_search/scroll?scroll=10m" +
-    "&_source_include=*&fields=_routing,_version",
+    "&_source_include=*",
     scroll_id)
   data = Oj.load data
   break if data['hits']['hits'].empty?
@@ -158,11 +158,7 @@ while true do
       base[doc_arg] = doc[doc_arg] if doc.key? doc_arg
     }
     ['_routing', '_version'].each{|field_arg|
-      if doc.has_key? 'fields'
-        if doc['fields'].has_key? field_arg
-          base[field_arg] = doc['fields'][field_arg]
-        end
-      end
+      base[field_arg] = doc['_source'][field_arg] if doc['_source'].has_key? field_arg
     }
     bulk << Oj.dump({bulk_op => base}) + "\n"
     bulk << Oj.dump(doc['_source']) + "\n"
