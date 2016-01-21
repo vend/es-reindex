@@ -130,11 +130,11 @@ t, done = Time.now, 0
 shards = retried_request :get, "#{surl}/#{sidx}/_count?q=*"
 shards = Oj.load(shards)['_shards']['total'].to_i
 scan = retried_request(:get, "#{surl}/#{sidx}/_search" +
-    "?search_type=scan&scroll=10m&size=#{frame / shards}" +
-    "&_source_include=*&fields=_routing,_version,version,_version_type,version_type"
+    "?search_type=scan&scroll=10m&size=#{frame / shards}"
     )
 scan = Oj.load scan
 scroll_id = scan['_scroll_id']
+puts scan['hits']['hits'].first
 total = scan['hits']['total']
 printf "    %u/%u (%.1f%%) done.\r", done, total, 0
 
@@ -142,21 +142,23 @@ bulk_op = update ? 'index' : 'create'
 
 while true do
   data = retried_request(:post,
-    "#{surl}/_search/scroll?scroll=10m", scroll_id)
+    "#{surl}/_search/scroll?scroll=10m" +
+    "&_source_include=*&fields=_routing,_version,version,_version_type,version_type"
+    , scroll_id)
   data = Oj.load data
   break if data['hits']['hits'].empty?
   scroll_id = data['_scroll_id']
   bulk = ''
   data['hits']['hits'].each do |doc|
     ### === implement possible modifications to the document
-    doc["_source"].delete("Suggest") if doc["_source"].has_key?("Suggest")
+    doc["_source"].delete("Suggest") if doc["_source"].has_key? "Suggest"
     ### === end modifications to the document
     base = {'_index' => didx, '_id' => doc['_id'], '_type' => doc['_type']}
     ['_timestamp', '_ttl'].each{|doc_arg|
       base[doc_arg] = doc[doc_arg] if doc.key? doc_arg
     }
     ['_routing'].each{|field_arg|
-      base[field_arg] = doc['fields'][field_arg] if doc['fields'].key? field_arg
+      base[field_arg] = doc['fields'][field_arg] if doc['fields'].has_key? field_arg
     }
     # ['_version'].each{|field_arg|
     #   base[field_arg] = doc['fields'][field_arg].first if doc['fields'].key? field_arg and doc['fields'][field_arg].count==1
