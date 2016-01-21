@@ -158,7 +158,11 @@ while true do
       base[doc_arg] = doc[doc_arg] if doc.key? doc_arg
     }
     ['_routing', '_version'].each{|field_arg|
-      base[field_arg] = doc['fields'][field_arg] if doc.has_key? 'fields' && doc['fields'].has_key? field_arg
+      if doc.has_key? 'fields'
+        if doc['fields'].has_key? field_arg
+          base[field_arg] = doc['fields'][field_arg]
+        end
+      end
     }
     bulk << Oj.dump({bulk_op => base}) + "\n"
     bulk << Oj.dump(doc['_source']) + "\n"
