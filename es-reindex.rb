@@ -147,6 +147,7 @@ while true do
   break if data['hits']['hits'].empty?
   scroll_id = data['_scroll_id']
   bulk = ''
+  puts data['hits']['hits'].first  # DEBUG
   data['hits']['hits'].each do |doc|
     ### === implement possible modifications to the document
     doc["_source"].delete("Suggest") if doc["_source"].has_key?("Suggest")
