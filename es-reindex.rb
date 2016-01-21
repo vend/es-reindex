@@ -157,12 +157,9 @@ while true do
     ['_timestamp', '_ttl'].each{|doc_arg|
       base[doc_arg] = doc[doc_arg] if doc.key? doc_arg
     }
-    ['_routing'].each{|field_arg|
-      base[field_arg] = doc['fields'][field_arg] if doc['fields'].has_key? field_arg
+    ['_routing', '_version'].each{|field_arg|
+      base[field_arg] = doc['fields'][field_arg] if doc.has_key? 'fields' && doc['fields'].has_key? field_arg
     }
-    # ['_version'].each{|field_arg|
-    #   base[field_arg] = doc['fields'][field_arg].first if doc['fields'].key? field_arg and doc['fields'][field_arg].count==1
-    # }
     bulk << Oj.dump({bulk_op => base}) + "\n"
     bulk << Oj.dump(doc['_source']) + "\n"
     done += 1
