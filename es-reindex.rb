@@ -131,7 +131,7 @@ shards = retried_request :get, "#{surl}/#{sidx}/_count?q=*"
 shards = Oj.load(shards)['_shards']['total'].to_i
 scan = retried_request(:get, "#{surl}/#{sidx}/_search" +
     "?search_type=scan&scroll=10m&size=#{frame / shards}" +
-    "&_source_include=*&fields=_routing,_version,version"
+    "&_source_include=*&fields=_routing,_version,version,_version_type,version_type"
     )
 scan = Oj.load scan
 scroll_id = scan['_scroll_id']
@@ -147,7 +147,6 @@ while true do
   break if data['hits']['hits'].empty?
   scroll_id = data['_scroll_id']
   bulk = ''
-  puts data['hits']['hits'].first  # DEBUG
   data['hits']['hits'].each do |doc|
     ### === implement possible modifications to the document
     doc["_source"].delete("Suggest") if doc["_source"].has_key?("Suggest")
@@ -168,7 +167,8 @@ while true do
   end
   unless bulk.empty?
     bulk << "\n" # empty line in the end required
-    retried_request :post, "#{durl}/_bulk?version_type=external_gte", bulk
+    puts bulk
+    retried_request :post, "#{durl}/_bulk?version_type=external_gte&version_type=external_gte", bulk
   end
 
   eta = total * (Time.now - t) / done
