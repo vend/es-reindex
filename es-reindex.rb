@@ -161,6 +161,7 @@ while true do
     ['_routing', '_version'].each{|field_arg|
       base[field_arg] = doc['_source'][field_arg] if doc['_source'].has_key? field_arg
     }
+    warn "\nINVALID VERSION FOUND ON #{base} for #{doc}\n" if base['_version'].to_i < 0
     bulk << Oj.dump({bulk_op => base}) + "\n"
     bulk << Oj.dump(doc['_source']) + "\n"
     done += 1
