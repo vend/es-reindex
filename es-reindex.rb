@@ -82,6 +82,7 @@ def retried_request method, url, data=nil, headers={content_type: 'application/j
     rescue => e
       warn "\nRetrying #{method.to_s.upcase} ERROR: #{e.class} - #{e.message}"
       warn e.response
+      warn data if data
     end
   end
 end
