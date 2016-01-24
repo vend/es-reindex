@@ -79,6 +79,7 @@ def retried_request method, url, data=nil, headers={content_type: 'application/j
         RestClient.send(method, url, headers)
     rescue RestClient::ResourceNotFound # no point to retry
       return nil
+    rescue RestClient::BadRequest
       return nil
     rescue => e
       warn "\nRetrying #{method.to_s.upcase} ERROR: #{e.class} - #{e.message}"
