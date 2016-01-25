@@ -147,6 +147,7 @@ scroll_id = scan['_scroll_id']
 puts scan['hits']['hits'].first
 total = scan['hits']['total']
 printf "    %u/%u (%.1f%%) done.\r", done, total, 0
+changed = 0
 
 bulk_op = update ? 'index' : 'create'
 
@@ -195,7 +196,7 @@ printf "#{' ' * 80}\r    %u/%u done in %s.\n",
   done, total, tm_len(Time.now - t)
 
 # show how many documents were actually changed
-printf "#{changed} documents created/updated" if changed
+printf "#{changed} documents created/updated" if changed > 0
 
 # no point for large reindexation with data still being stored in index
 printf 'Checking document count... '
