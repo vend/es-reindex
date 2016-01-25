@@ -170,7 +170,9 @@ while true do
     }
     warn "\nINVALID VERSION FOUND ON #{base} for #{doc}\n" if base['_version'].to_i < 0
     if single
-      retried_request :post, "#{durl}/#{didx}/#{doc['_type']}/#{doc['_id']}?version_type=external_gte", Oj.dump(doc['_source']) + "\n"
+      if retried_request :post, "#{durl}/#{didx}/#{doc['_type']}/#{doc['_id']}?version=#{doc['_source']['_version']}&version_type=external_gte", Oj.dump(doc['_source']) + "\n"
+        changed += 1
+      end
     else
       bulk << Oj.dump({bulk_op => base}) + "\n"
       bulk << Oj.dump(doc['_source']) + "\n"
@@ -189,6 +191,9 @@ end
 
 printf "#{' ' * 80}\r    %u/%u done in %s.\n",
   done, total, tm_len(Time.now - t)
+
+# show how many documents were actually changed
+printf "#{changed} documents created/updated" if changed
 
 # no point for large reindexation with data still being stored in index
 printf 'Checking document count... '
