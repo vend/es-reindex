@@ -88,7 +88,7 @@ def retried_request method, url, data=nil, headers={content_type: 'application/j
       warn e.response
       return nil
     rescue SocketError => e
-      warn "\nSocket error during #{method.to_s.upcase} to #{url}: #{e.message}"
+      # warn "\nSocket error during #{method.to_s.upcase} to #{url}: #{e.message}"
     rescue => e
       warn "\nRetrying #{method.to_s.upcase} ERROR: #{e.class} - #{e.message}"
       warn e.response
