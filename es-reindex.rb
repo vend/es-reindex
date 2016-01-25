@@ -20,6 +20,7 @@ Usage:
     - -r - remove the index in the new location first
     - -f - specify frame size to be obtained with one fetch during scrolling
     - -u - update existing documents (default: only create non-existing)
+    - -s - index documents one-by-one (default: use bulk api)
     - optional source/destination urls default to http://127.0.0.1:9200
 \n"
   exit 1
