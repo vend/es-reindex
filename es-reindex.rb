@@ -168,7 +168,7 @@ while true do
     }
     warn "\nINVALID VERSION FOUND ON #{base} for #{doc}\n" if base['_version'].to_i < 0
     if single
-      retried_request :post, "#{durl}/#{didx}/#{doc['_type']}/#{doc['_id']}?_version_type=external_gte", Oj.dump(doc['_source']) + "\n"
+      retried_request :post, "#{durl}/#{didx}/#{doc['_type']}/#{doc['_id']}?version_type=external_gte", Oj.dump(doc['_source']) + "\n"
     else
       bulk << Oj.dump({bulk_op => base}) + "\n"
       bulk << Oj.dump(doc['_source']) + "\n"
