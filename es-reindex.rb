@@ -27,13 +27,14 @@ end
 
 Oj.default_options = {:mode => :compat}
 
-remove, update, frame, src, dst = false, false, 1000, nil, nil
+remove, update, single, frame, src, dst = false, false, false, 1000, nil, nil
 
 while ARGV[0]
   case arg = ARGV.shift
   when '-r' then remove = true
   when '-f' then frame = ARGV.shift.to_i
   when '-u' then update = true
+  when '-s' then single = true
   else
     u = arg.chomp '/'
     !src ? (src = u) : !dst ? (dst = u) :
@@ -79,12 +80,12 @@ def retried_request method, url, data=nil, headers={content_type: 'application/j
         RestClient.send(method, url, headers)
     rescue RestClient::ResourceNotFound # no point to retry
       return nil
-    rescue RestClient::BadRequest
+    rescue RestClient::BadRequest => e
+      warn "\nBad #{method.to_s.upcase} request ERROR: #{e.message}"
       return nil
     rescue => e
       warn "\nRetrying #{method.to_s.upcase} ERROR: #{e.class} - #{e.message}"
       warn e.response
-      warn data if data
     end
   end
 end
@@ -164,8 +165,12 @@ while true do
       base[field_arg] = doc['_source'][field_arg] if doc['_source'].has_key? field_arg
     }
     warn "\nINVALID VERSION FOUND ON #{base} for #{doc}\n" if base['_version'].to_i < 0
-    bulk << Oj.dump({bulk_op => base}) + "\n"
-    bulk << Oj.dump(doc['_source']) + "\n"
+    if single
+      retried_request :post, "#{durl}/#{didx}/#{doc['_id']}?_version_type=external_gte", doc['_source']
+    else
+      bulk << Oj.dump({bulk_op => base}) + "\n"
+      bulk << Oj.dump(doc['_source']) + "\n"
+    end
     done += 1
   end
   unless bulk.empty?
