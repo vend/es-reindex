@@ -82,6 +82,7 @@ def retried_request method, url, data=nil, headers={content_type: 'application/j
       return nil
     rescue RestClient::BadRequest => e
       warn "\nBad #{method.to_s.upcase} request to #{url} - ERROR: #{e.message}"
+      warn e.response
       return nil
     rescue => e
       warn "\nRetrying #{method.to_s.upcase} ERROR: #{e.class} - #{e.message}"
@@ -166,7 +167,7 @@ while true do
     }
     warn "\nINVALID VERSION FOUND ON #{base} for #{doc}\n" if base['_version'].to_i < 0
     if single
-      retried_request :post, "#{durl}/#{didx}/#{doc['_id']}?_version_type=external_gte", doc['_source']
+      retried_request :post, "#{durl}/#{didx}/#{doc['_id']}?_version_type=external_gte", Oj.dump(doc['_source']) + "\n"
     else
       bulk << Oj.dump({bulk_op => base}) + "\n"
       bulk << Oj.dump(doc['_source']) + "\n"
