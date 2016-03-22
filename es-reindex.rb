@@ -71,16 +71,16 @@ def tm_len l
   out
 end
 
-def retried_request method, url, data=nil
+def retried_request method, url, data=nil, headers={content_type: 'application/json'}
   while true
     begin
       return data ?
-        RestClient.send(method, url, data) :
-        RestClient.send(method, url)
+        RestClient.send(method, url, data, headers) :
+        RestClient.send(method, url, headers)
     rescue RestClient::ResourceNotFound # no point to retry
       return nil
     rescue => e
-      warn "\nRetrying #{method.to_s.upcase} ERROR: #{e.class} - #{e.message}"
+      warn "\nRetrying #{method.to_s.upcase} #{url}\nERROR: #{e.class} - #{e.message}"
       warn e.response
     end
   end
@@ -88,10 +88,10 @@ end
 
 # remove old index in case of remove=true
 retried_request(:delete, "#{durl}/#{didx}") \
-  if remove && retried_request(:get, "#{durl}/#{didx}/_status")
+  if remove && retried_request(:get, "#{durl}/#{didx}/_recovery")
 
 # (re)create destination index
-unless retried_request(:get, "#{durl}/#{didx}/_status")
+unless retried_request(:get, "#{durl}/#{didx}/_recovery")
   # obtain the original index settings first
   unless settings = retried_request(:get, "#{surl}/#{sidx}/_settings")
     warn "Failed to obtain original index '#{surl}/#{sidx}' settings!"
@@ -139,21 +139,32 @@ printf "    %u/%u (%.1f%%) done.\r", done, total, 0
 bulk_op = update ? 'index' : 'create'
 
 while true do
-  data = retried_request(:get,
-      "#{surl}/_search/scroll?scroll=10m&scroll_id=#{scroll_id}")
+  data = retried_request(
+    :post,
+    "#{surl}/_search/scroll?scroll=10m",
+    scroll_id
+  )
   data = Oj.load data
   break if data['hits']['hits'].empty?
   scroll_id = data['_scroll_id']
   bulk = ''
   data['hits']['hits'].each do |doc|
     ### === implement possible modifications to the document
+    # Change index
+    contents = Oj.dump(doc['_source'])
+    # puts "BEFORE (#{contents.class}):\n #{contents}\n"
+    sanitized_contents = contents.gsub('[logstash-]YYYY.MM.DD', 'logstash-*')
+    sanitized_contents = sanitized_contents.gsub('host.dc', 'node.dc')
+    sanitized_contents = sanitized_contents.gsub('host.pool', 'node.pool')
+    sanitized_contents = sanitized_contents.gsub('.raw', '')
+    # puts "AFTER:\n #{sanitized_contents}\n"
     ### === end modifications to the document
     base = {'_index' => didx, '_id' => doc['_id'], '_type' => doc['_type']}
     ['_timestamp', '_ttl'].each{|doc_arg|
       base[doc_arg] = doc[doc_arg] if doc.key? doc_arg
     }
     bulk << Oj.dump({bulk_op => base}) + "\n"
-    bulk << Oj.dump(doc['_source']) + "\n"
+    bulk << sanitized_contents + "\n"
     done += 1
   end
   unless bulk.empty?
