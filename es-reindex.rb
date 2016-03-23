@@ -156,7 +156,7 @@ while true do
     sanitized_contents = contents.gsub('[logstash-]YYYY.MM.DD', 'logstash-*')
     sanitized_contents = sanitized_contents.gsub('host.dc', 'node.dc')
     sanitized_contents = sanitized_contents.gsub('host.pool', 'node.pool')
-    sanitized_contents = sanitized_contents.gsub('.raw', '')
+    sanitized_contents = sanitized_contents.gsub('http.latency.ms', 'http.latency')
     # puts "AFTER:\n #{sanitized_contents}\n"
     ### === end modifications to the document
     base = {'_index' => didx, '_id' => doc['_id'], '_type' => doc['_type']}
